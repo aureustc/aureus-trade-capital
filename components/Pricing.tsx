@@ -1,0 +1,544 @@
+"use client";
+
+import {
+  Check,
+  Landmark,
+  Smartphone,
+  ArrowRight,
+  ShieldCheck,
+  X,
+  Zap,
+  Loader2,
+} from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import { useState } from "react";
+import { SectionReveal } from "./SectionReveal";
+import {
+  PaymentDetailsPanel,
+  PaymentScreenshotNotice,
+} from "./PaymentDetailsPanel";
+import { amountByPeriod, PAYMENT_EMAIL, periodLabels } from "@/lib/paymentDetails";
+import type { PaymentMethod, Period } from "@/lib/paymentTypes";
+import { isRazorpayPublicReady } from "@/lib/razorpay-config";
+import { openRazorpayCheckout } from "@/lib/razorpay-client";
+
+const periods: { id: Period; label: string }[] = [
+  { id: "three", label: "3 Months" },
+  { id: "six", label: "6 Months" },
+  { id: "yearly", label: "Yearly" },
+  { id: "lifetime", label: "Lifetime" },
+];
+
+const prices: Record<
+  Period,
+  { display: string; suffix: string; note: string | null }
+> = {
+  three: { display: "₹6,999", suffix: "", note: null },
+  six: { display: "₹10,999", suffix: "", note: null },
+  yearly: { display: "₹14,999", suffix: "", note: null },
+  lifetime: { display: "₹49,999", suffix: "", note: "one-time" },
+};
+
+const features = [
+  "ATC Bot License for MetaTrader 5",
+  "Works with any MT5-supported broker",
+  "Multi-currency pairs incl. XAU/USD",
+  "AI automation & risk controls",
+  "Setup guide + email support",
+  "Free updates during license period",
+] as const;
+
+const paymentMethods: {
+  id: PaymentMethod;
+  label: string;
+  icon: typeof Zap;
+  description: string;
+  badge?: string;
+}[] = [
+  {
+    id: "razorpay",
+    label: "Pay Online",
+    icon: Zap,
+    description: "Card, UPI, net banking, wallets",
+    badge: "Recommended",
+  },
+  {
+    id: "upi",
+    label: "Manual UPI",
+    icon: Smartphone,
+    description: "QR code & UPI ID",
+  },
+  {
+    id: "bank",
+    label: "Bank Transfer",
+    icon: Landmark,
+    description: "NEFT / RTGS / IMPS",
+  },
+];
+
+const razorpayReady = isRazorpayPublicReady();
+const razorpayKey = razorpayReady ? process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID : undefined;
+
+export function Pricing() {
+  const [period, setPeriod] = useState<Period>("three");
+  const [selectedPayment, setSelectedPayment] = useState<PaymentMethod | null>(null);
+  const [step, setStep] = useState<"plans" | "payment" | "confirm">("plans");
+  const [paying, setPaying] = useState(false);
+  const [payError, setPayError] = useState<string | null>(null);
+  const [razorpayPaymentId, setRazorpayPaymentId] = useState<string | null>(null);
+  const [paymentVerified, setPaymentVerified] = useState(false);
+
+  const price = prices[period];
+  const amountInr = amountByPeriod[period];
+  const chosenPayment = paymentMethods.find((p) => p.id === selectedPayment);
+
+  function handleProceed() {
+    setPayError(null);
+    setStep("payment");
+  }
+
+  function handlePaymentProceed() {
+    if (selectedPayment) setStep("confirm");
+  }
+
+  function handleReset() {
+    setStep("plans");
+    setSelectedPayment(null);
+    setPayError(null);
+    setRazorpayPaymentId(null);
+    setPaymentVerified(false);
+    setPaying(false);
+  }
+
+  async function handleRazorpayPay() {
+    if (!razorpayReady || !razorpayKey) {
+      setPayError(
+        "Razorpay is not active yet. Use Manual UPI or Bank Transfer below — you can enable Razorpay anytime by adding API keys to .env.local.",
+      );
+      return;
+    }
+
+    setPaying(true);
+    setPayError(null);
+
+    try {
+      const orderRes = await fetch("/api/razorpay/order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ period }),
+      });
+      const orderData = await orderRes.json();
+
+      if (!orderRes.ok) {
+        setPayError(orderData.error ?? "Could not start checkout.");
+        setPaying(false);
+        return;
+      }
+
+      const opened = await openRazorpayCheckout({
+        checkout: {
+          key: razorpayKey,
+          amount: orderData.amount,
+          currency: orderData.currency,
+          name: "Aureus Trade Capital",
+          description: `ATC Bot · ${periodLabels[period]}`,
+          order_id: orderData.orderId,
+          theme: { color: "#c9a227" },
+        },
+        onSuccess: async (response) => {
+          const verifyRes = await fetch("/api/razorpay/verify", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(response),
+          });
+          const verifyData = await verifyRes.json();
+
+          if (!verifyRes.ok || !verifyData.verified) {
+            setPayError(verifyData.error ?? "Payment could not be verified.");
+            setPaying(false);
+            return;
+          }
+
+          setRazorpayPaymentId(verifyData.paymentId);
+          setPaymentVerified(true);
+          setSelectedPayment("razorpay");
+          setPaying(false);
+          setStep("confirm");
+        },
+        onDismiss: () => setPaying(false),
+        onFailure: (message) => {
+          setPayError(message);
+          setPaying(false);
+        },
+      });
+
+      if (!opened) {
+        setPayError("Could not load Razorpay checkout. Please try again.");
+        setPaying(false);
+      }
+    } catch {
+      setPayError("Something went wrong. Please try again.");
+      setPaying(false);
+    }
+  }
+
+  return (
+    <SectionReveal
+      id="pricing"
+      data-nav="pricing"
+      className="section-scroll relative bg-[var(--bg-secondary)]/40 py-20 sm:py-28"
+    >
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-3xl text-center">
+          <h2 className="font-heading text-3xl font-semibold text-[var(--text-primary)] sm:text-4xl lg:text-5xl">
+            Get the ATC Bot
+          </h2>
+          <p className="mt-4 text-base text-[var(--text-secondary)] sm:text-lg">
+            One license. MT5 only. Pay instantly with Razorpay or use manual UPI / bank transfer.
+          </p>
+        </div>
+
+        <AnimatePresence mode="wait">
+          {step === "plans" && (
+            <motion.div
+              key="plans"
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -16 }}
+              transition={{ duration: 0.3 }}
+            >
+              <div className="mx-auto mt-10 flex max-w-2xl flex-wrap justify-center gap-2 rounded-full border border-[var(--card-border)] bg-[var(--bg-secondary)] p-1.5">
+                {periods.map((p) => (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => setPeriod(p.id)}
+                    className={`relative min-w-[88px] flex-1 rounded-full px-3 py-2.5 text-sm font-semibold transition sm:min-w-[110px] ${
+                      period === p.id
+                        ? "text-[var(--on-accent)]"
+                        : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                    }`}
+                  >
+                    {period === p.id && (
+                      <motion.span
+                        layoutId="pricing-tab"
+                        className="absolute inset-0 rounded-full bg-gradient-to-r from-[var(--accent-hover)] to-[var(--accent)] shadow-[var(--glow)]"
+                        transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                      />
+                    )}
+                    <span className="relative z-[1]">{p.label}</span>
+                  </button>
+                ))}
+              </div>
+
+              <div className="mx-auto mt-10 max-w-lg">
+                <div className="glass-panel-strong pro-card-accent relative rounded-2xl p-8 shadow-[var(--glow-strong)]">
+                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-[var(--accent-hover)] to-[var(--accent)] px-4 py-1 text-xs font-bold uppercase tracking-wide text-[var(--on-accent)]">
+                    MT5 Bot License
+                  </span>
+
+                  <h3 className="font-heading text-center text-xl font-semibold text-[var(--text-primary)]">
+                    Aureus Trade Capital Bot
+                  </h3>
+                  <p className="mt-1 text-center text-xs text-[var(--text-secondary)]">
+                    MetaTrader 5 only · Not compatible with MT4
+                  </p>
+
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={period}
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -8 }}
+                      className="mt-8 text-center"
+                    >
+                      <p className="font-heading text-4xl font-bold text-[var(--accent)] sm:text-5xl">
+                        {price.display}
+                        {price.suffix && (
+                          <span className="text-lg font-normal text-[var(--text-secondary)]">
+                            {" "}
+                            {price.suffix}
+                          </span>
+                        )}
+                      </p>
+                      {price.note && (
+                        <p className="mt-1 text-sm text-[var(--accent-hover)]">({price.note})</p>
+                      )}
+                      <p className="mt-2 text-sm text-[var(--text-secondary)]">
+                        {periodLabels[period]} access
+                      </p>
+                    </motion.div>
+                  </AnimatePresence>
+
+                  <ul className="mt-8 space-y-3">
+                    {features.map((f) => (
+                      <li
+                        key={f}
+                        className="flex items-start gap-2 text-sm text-[var(--text-secondary)]"
+                      >
+                        <Check className="mt-0.5 h-4 w-4 shrink-0 text-[var(--accent)]" />
+                        {f}
+                      </li>
+                    ))}
+                  </ul>
+
+                  <button
+                    type="button"
+                    onClick={handleProceed}
+                    className="btn-primary group mt-8 flex w-full items-center justify-center gap-2 rounded-xl py-3.5 text-base font-semibold"
+                  >
+                    Proceed to Payment
+                    <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+                  </button>
+                </div>
+              </div>
+
+              <p className="mx-auto mt-6 max-w-md text-center text-xs text-[var(--text-secondary)]">
+                Razorpay checkout for cards, UPI &amp; wallets · Manual options need a payment
+                screenshot by email.
+              </p>
+            </motion.div>
+          )}
+
+          {step === "payment" && (
+            <motion.div
+              key="payment"
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -16 }}
+              className="mt-14"
+            >
+              <div className="pro-card mx-auto max-w-2xl p-6">
+                <p className="text-xs font-semibold uppercase tracking-widest text-[var(--text-secondary)]">
+                  Order Summary
+                </p>
+                <div className="mt-3 flex items-center justify-between">
+                  <div>
+                    <p className="font-heading text-lg font-semibold text-[var(--text-primary)]">
+                      ATC Bot · {periodLabels[period]}
+                    </p>
+                    <p className="text-sm text-[var(--text-secondary)]">MetaTrader 5</p>
+                  </div>
+                  <p className="font-heading text-2xl font-bold text-[var(--accent)]">
+                    {price.display}
+                  </p>
+                </div>
+              </div>
+
+              <div className="mx-auto mt-8 max-w-2xl">
+                <p className="text-center text-sm font-medium text-[var(--text-secondary)]">
+                  Choose your payment method
+                </p>
+                <div className="mt-4 grid gap-4 sm:grid-cols-3">
+                  {paymentMethods.map((method) => {
+                    const isChosen = selectedPayment === method.id;
+                    return (
+                      <motion.button
+                        key={method.id}
+                        type="button"
+                        whileHover={{ y: -3 }}
+                        onClick={() => {
+                          setSelectedPayment(method.id);
+                          setPayError(null);
+                        }}
+                        disabled={method.id === "razorpay" && !razorpayReady}
+                        className={`relative flex flex-col items-center gap-3 rounded-2xl border p-6 transition-all disabled:cursor-not-allowed disabled:opacity-60 ${
+                          isChosen
+                            ? "border-[var(--accent)] bg-[var(--accent-soft-md)] ring-1 ring-[var(--accent)]"
+                            : "border-[var(--card-border)] bg-[var(--bg-card)]"
+                        }`}
+                      >
+                        {method.badge && !isChosen && (
+                          <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-[var(--accent)] px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-[var(--on-accent)]">
+                            {method.id === "razorpay" && !razorpayReady ? "Setup later" : method.badge}
+                          </span>
+                        )}
+                        {isChosen && (
+                          <div className="absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded-full bg-[var(--accent)]">
+                            <Check className="h-3 w-3 text-[var(--on-accent)]" />
+                          </div>
+                        )}
+                        <div
+                          className={`flex h-12 w-12 items-center justify-center rounded-xl ${
+                            isChosen ? "bg-[var(--accent)]" : "bg-[var(--accent-soft)]"
+                          }`}
+                        >
+                          <method.icon
+                            className={`h-6 w-6 ${isChosen ? "text-[var(--on-accent)]" : "text-[var(--accent)]"}`}
+                          />
+                        </div>
+                        <div className="text-center">
+                          <p className="text-sm font-semibold text-[var(--text-primary)]">
+                            {method.label}
+                          </p>
+                          <p className="mt-0.5 text-xs text-[var(--text-secondary)]">
+                            {method.description}
+                          </p>
+                        </div>
+                      </motion.button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {selectedPayment && (
+                <PaymentDetailsPanel
+                  method={selectedPayment}
+                  amountInr={amountInr}
+                  amountDisplay={price.display}
+                  periodLabel={periodLabels[period]}
+                />
+              )}
+
+              {payError && (
+                <p className="mx-auto mt-4 max-w-2xl rounded-lg border border-[var(--card-border)] bg-[var(--bg-card)] px-4 py-3 text-center text-sm text-[var(--negative)]">
+                  {payError}
+                </p>
+              )}
+
+              <div className="mt-8 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
+                <button
+                  type="button"
+                  onClick={() => setStep("plans")}
+                  disabled={paying}
+                  className="rounded-full border border-[var(--card-border)] px-6 py-3 text-sm font-medium text-[var(--text-secondary)] disabled:opacity-50"
+                >
+                  ← Back
+                </button>
+                {selectedPayment === "razorpay" && (
+                  <button
+                    type="button"
+                    onClick={handleRazorpayPay}
+                    disabled={paying}
+                    className="btn-primary group flex items-center gap-2 rounded-full px-8 py-3.5 text-sm font-semibold disabled:opacity-70"
+                  >
+                    {paying ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Opening checkout…
+                      </>
+                    ) : (
+                      <>
+                        Pay {price.display} with Razorpay
+                        <ArrowRight className="h-4 w-4" />
+                      </>
+                    )}
+                  </button>
+                )}
+                {selectedPayment && selectedPayment !== "razorpay" && (
+                  <button
+                    type="button"
+                    onClick={handlePaymentProceed}
+                    className="btn-primary group flex items-center gap-2 rounded-full px-8 py-3.5 text-sm font-semibold"
+                  >
+                    I&apos;ve Paid — Continue
+                    <ArrowRight className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+            </motion.div>
+          )}
+
+          {step === "confirm" && (
+            <motion.div
+              key="confirm"
+              initial={{ opacity: 0, scale: 0.96 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="mt-14"
+            >
+              <div className="pro-card-accent mx-auto max-w-lg rounded-2xl p-8 text-center shadow-[var(--glow-strong)]">
+                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[var(--accent)]">
+                  <ShieldCheck className="h-8 w-8 text-[var(--on-accent)]" />
+                </div>
+                <h3 className="mt-5 font-heading text-2xl font-semibold text-[var(--text-primary)]">
+                  {paymentVerified ? "Payment successful!" : "Almost there!"}
+                </h3>
+                <p className="mt-2 text-sm text-[var(--text-secondary)]">
+                  {paymentVerified
+                    ? "Your Razorpay payment is confirmed. We will email your MT5 license shortly."
+                    : "Complete the last step so we can activate your license."}
+                </p>
+
+                {!paymentVerified && (
+                  <div className="mt-6 text-left">
+                    <PaymentScreenshotNotice compact />
+                  </div>
+                )}
+
+                <div className="mt-6 space-y-3 rounded-xl border border-[var(--card-border)] bg-[var(--bg-secondary)] p-5 text-left text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-[var(--text-secondary)]">License</span>
+                    <span className="font-semibold text-[var(--text-primary)]">
+                      ATC Bot · {periodLabels[period]}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-[var(--text-secondary)]">Platform</span>
+                    <span className="font-semibold text-[var(--text-primary)]">MT5 only</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-[var(--text-secondary)]">Amount</span>
+                    <span className="font-bold text-[var(--accent)]">{price.display}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-[var(--text-secondary)]">Payment</span>
+                    <span className="font-semibold text-[var(--text-primary)]">
+                      {chosenPayment?.label}
+                    </span>
+                  </div>
+                  {razorpayPaymentId && (
+                    <div className="flex justify-between gap-4 border-t border-[var(--card-border)] pt-3">
+                      <span className="text-[var(--text-secondary)]">Payment ID</span>
+                      <span className="truncate font-mono text-xs font-semibold text-[var(--text-primary)]">
+                        {razorpayPaymentId}
+                      </span>
+                    </div>
+                  )}
+                </div>
+                <p className="mt-5 text-xs leading-relaxed text-[var(--text-secondary)]">
+                  {paymentVerified ? (
+                    <>
+                      Save your payment ID above. Your license key and MT5 setup guide will be sent
+                      to your email within minutes. Questions?{" "}
+                      <a
+                        href={`mailto:${PAYMENT_EMAIL}`}
+                        className="font-medium text-[var(--accent-deep)] hover:underline"
+                      >
+                        {PAYMENT_EMAIL}
+                      </a>
+                    </>
+                  ) : (
+                    <>
+                      Send your payment screenshot to{" "}
+                      <a
+                        href={`mailto:${PAYMENT_EMAIL}?subject=ATC%20Bot%20Payment%20-%20${encodeURIComponent(periodLabels[period])}`}
+                        className="font-medium text-[var(--accent-deep)] hover:underline"
+                      >
+                        {PAYMENT_EMAIL}
+                      </a>
+                      . After verification, your license key and MT5 setup guide are emailed within
+                      minutes.
+                    </>
+                  )}
+                </p>
+                <button
+                  type="button"
+                  onClick={handleReset}
+                  className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl border border-[var(--card-border)] py-3 text-sm text-[var(--accent)]"
+                >
+                  <X className="h-4 w-4" />
+                  Start Over
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <div className="mt-12 flex items-center justify-center gap-2 text-xs text-[var(--text-secondary)]">
+          <ShieldCheck className="h-4 w-4 text-[var(--accent)]" />
+          Razorpay secure checkout · MT5 bot only · We never hold your trading funds
+        </div>
+      </div>
+    </SectionReveal>
+  );
+}
