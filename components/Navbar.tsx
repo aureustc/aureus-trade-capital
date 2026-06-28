@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight, Menu, X } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ThemeToggle } from "./ThemeToggle";
@@ -53,20 +54,17 @@ export function Navbar() {
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3.5 sm:px-6 lg:px-8">
         <Link
           href="#home"
-          className="group flex items-center gap-2.5"
+          className="group flex items-center"
           onClick={() => setOpen(false)}
         >
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-[var(--accent-hover)] to-[var(--accent-deep)] font-heading text-sm font-bold text-[var(--on-accent)] shadow-[var(--glow)]">
-            ATC
-          </span>
-          <div className="hidden leading-tight sm:block">
-            <span className="block font-heading text-sm font-bold text-[var(--text-primary)]">
-              Aureus Trade Capital
-            </span>
-            <span className="text-[10px] font-medium text-[var(--accent)]">
-              AI Forex Bot
-            </span>
-          </div>
+          <Image
+            src="/logo2.png"
+            alt="Aureus Trade Capital"
+            width={50}
+            height={50}
+            className="rounded-full"
+            priority
+          />
         </Link>
 
         <nav className="hidden items-center gap-4 lg:flex lg:gap-5">
