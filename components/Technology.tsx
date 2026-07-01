@@ -17,12 +17,12 @@ import { motion } from "framer-motion";
 import { SectionReveal } from "./SectionReveal";
 
 const stack = [
-  { label: "Machine Learning Core", icon: Brain },
+  { label: "Rule-Based & Adaptive Logic", icon: Brain },
   { label: "Real-Time Data Feed", icon: Radar },
   { label: "Pattern Recognition Engine", icon: Cpu },
-  { label: "Risk Management Module", icon: Shield },
+  { label: "Configurable Risk Parameters", icon: Shield },
   { label: "Multi-Pair Optimizer", icon: Zap },
-  { label: "Predictive Signal Model", icon: Server },
+  { label: "Automated Signal Execution", icon: Server },
 ] as const;
 
 const security = [
@@ -47,8 +47,8 @@ export function Technology() {
               The Intelligence Behind the Bot
             </h2>
             <p className="mt-6 text-base leading-relaxed text-[var(--text-secondary)] sm:text-lg">
-              The ATC bot runs on a modular AI stack: live data ingestion, pattern
-              recognition, predictive signals, and risk-aware execution — all tuned for
+              The ATC bot runs on a modular algorithmic stack: live data ingestion, pattern
+              recognition, automated signal execution, and risk-aware execution — all tuned for
               MetaTrader 5 environments. It adapts to volatility regimes without requiring you
               to rewrite strategies by hand.
             </p>

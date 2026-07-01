@@ -1,0 +1,56 @@
+/* Dashboard runs inside data-theme="dark" but body may still be light — set base text here */
+.dashboard-theme {
+  color: var(--text-primary);
+}
+
+.dashboard-theme input,
+.dashboard-theme select,
+.dashboard-theme textarea {
+  color: var(--text-primary);
+  background-color: var(--bg-secondary);
+}
+
+.dashboard-theme input::placeholder,
+.dashboard-theme textarea::placeholder {
+  color: var(--text-secondary);
+}
+
+.dashboard-theme select option {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.dashboard-theme .dashboard-field {
+  color: var(--text-primary);
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--card-border);
+}
+
+.dashboard-theme .dashboard-field:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px rgba(219, 185, 74, 0.35);
+}
+
+.dashboard-theme .dashboard-outline-btn {
+  color: var(--text-primary);
+  border: 1px solid var(--card-border);
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.dashboard-theme .dashboard-outline-btn:hover {
+  color: var(--accent);
+  border-color: var(--accent-soft-strong);
+  background-color: var(--accent-soft);
+}
+
+.dashboard-theme .dashboard-table tbody td {
+  color: var(--text-primary);
+}
+
+.dashboard-theme .dashboard-table tbody tr:hover td {
+  color: var(--text-primary);
+}

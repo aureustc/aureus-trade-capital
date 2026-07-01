@@ -6,29 +6,29 @@ import { AnimatedCounter } from "./AnimatedCounter";
 
 const items = [
   {
-    key: "users",
+    key: "early-access",
     content: (
       <>
-        <AnimatedCounter end={10000} suffix="+" className="text-[var(--accent)]" />{" "}
-        <span className="text-[var(--text-primary)]">Bot Users</span>
+        <span className="text-[var(--accent)]">Early Access</span>{" "}
+        <span className="text-[var(--text-primary)]">Invite-Only Beta</span>
       </>
     ),
   },
   {
-    key: "auto",
+    key: "mt5",
     content: (
       <>
-        <span className="text-[var(--accent)]">24/7</span>{" "}
-        <span className="text-[var(--text-primary)]">Automated Trading</span>
+        <span className="text-[var(--accent)]">MT5 Only</span>{" "}
+        <span className="text-[var(--text-primary)]">MetaTrader 5 Compatible</span>
       </>
     ),
   },
   {
-    key: "strategies",
+    key: "gold",
     content: (
       <>
-        <AnimatedCounter end={100} suffix="+" className="text-[var(--accent)]" />{" "}
-        <span className="text-[var(--text-primary)]">Strategies Built-In</span>
+        <span className="text-[var(--accent)]">XAU/USD</span>{" "}
+        <span className="text-[var(--text-primary)]">Gold Specialist Built-In</span>
       </>
     ),
   },
@@ -37,7 +37,7 @@ const items = [
     content: (
       <>
         <AnimatedCounter end={98} suffix="ms" className="text-[var(--accent)]" />{" "}
-        <span className="text-[var(--text-primary)]">Average Execution Speed</span>
+        <span className="text-[var(--text-primary)]">Avg Signal Execution</span>
       </>
     ),
   },

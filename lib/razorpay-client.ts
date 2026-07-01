@@ -15,6 +15,7 @@ export type RazorpayCheckoutOptions = {
   name: string;
   description: string;
   order_id: string;
+  image?: string;
   prefill?: { name?: string; email?: string; contact?: string };
   theme?: { color?: string };
 };

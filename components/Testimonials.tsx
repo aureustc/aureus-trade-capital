@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { Star } from "lucide-react";
 import { motion } from "framer-motion";
 import { SectionReveal } from "./SectionReveal";
@@ -10,24 +9,24 @@ const testimonials = [
     quote:
       "The ATC bot has been running on my MT5 for 3 months. Consistent, disciplined, and completely hands-free.",
     name: "Rahul M.",
-    img: "https://i.pravatar.cc/60?img=1",
+    initial: "R",
   },
   {
     quote:
       "Setup was incredibly easy. Had the bot live on my broker within 20 minutes.",
     name: "Priya S.",
-    img: "https://i.pravatar.cc/60?img=2",
+    initial: "P",
   },
   {
     quote:
-      "Finally a bot that actually manages risk properly. XAU/USD performance has been impressive.",
+      "The bot setup was straightforward and the support team was responsive.",
     name: "Arjun K.",
-    img: "https://i.pravatar.cc/60?img=3",
+    initial: "A",
   },
   {
     quote: "Great support team and the bot just works. No babysitting required.",
     name: "Sneha T.",
-    img: "https://i.pravatar.cc/60?img=4",
+    initial: "S",
   },
 ] as const;
 
@@ -50,28 +49,34 @@ export function Testimonials() {
               className="pro-card min-w-[280px] shrink-0 p-6 sm:min-w-0"
             >
               <div className="flex gap-0.5 text-[var(--accent)]">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Star key={i} className="h-4 w-4 fill-current" />
+                {Array.from({ length: 5 }).map((_, j) => (
+                  <Star key={j} className="h-4 w-4 fill-current" />
                 ))}
               </div>
               <p className="mt-4 text-sm leading-relaxed text-[var(--text-secondary)] sm:text-base">
                 &ldquo;{t.quote}&rdquo;
               </p>
               <div className="mt-6 flex items-center gap-3">
-                <Image
-                  src={t.img}
-                  alt={t.name}
-                  width={48}
-                  height={48}
-                  className="rounded-full border border-[var(--card-border)]"
-                />
-                <p className="text-sm font-semibold text-[var(--text-primary)]">
-                  — {t.name}
-                </p>
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#060a14] font-heading text-sm font-bold text-[var(--accent)]">
+                  {t.initial}
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-[var(--text-primary)]">
+                    — {t.name}
+                  </p>
+                  <p className="mt-0.5 text-[10px] text-[var(--text-secondary)]">
+                    Unverified early user review
+                  </p>
+                </div>
               </div>
             </motion.div>
           ))}
         </div>
+
+        <p className="mx-auto mt-10 max-w-3xl text-center text-xs leading-relaxed text-[var(--text-secondary)]">
+          Reviews are from early beta participants. Individual results vary. These are personal
+          experiences and do not represent typical outcomes.
+        </p>
       </div>
     </SectionReveal>
   );

@@ -29,7 +29,7 @@ export function Hero() {
               animate={{ opacity: 1, y: 0 }}
               className="hero-announcement mx-auto lg:mx-0"
             >
-              Trade Smarter. Profit Wiser.
+              Trade Smarter. Profit Wiser.*
               <ArrowRight className="h-3.5 w-3.5" />
             </motion.div>
 
@@ -48,7 +48,7 @@ export function Hero() {
               transition={{ delay: 0.1 }}
               className="font-heading mt-3 text-4xl font-bold leading-[1.1] text-[var(--text-primary)] sm:text-5xl lg:text-[3.25rem] xl:text-6xl"
             >
-              Trade With AI,
+              Trade With AI-Assisted Automation,
               <br />
               <span className="brand-gradient">Grow With the ATC Bot</span>
             </motion.h1>
@@ -59,9 +59,19 @@ export function Hero() {
               transition={{ delay: 0.16 }}
               className="mx-auto mt-5 max-w-lg text-base leading-relaxed text-[var(--text-secondary)] lg:mx-0"
             >
-              Plug our AI Forex bot into your MT5 broker terminal — secure setup, fast
+              Plug our algorithmic Forex bot into your MT5 broker terminal — secure setup, fast
               execution, and automated strategies while your funds stay in your broker
               account.
+            </motion.p>
+
+            <motion.p
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.19 }}
+              className="mx-auto mt-3 max-w-lg text-[11px] leading-relaxed text-[var(--text-secondary)]/80 lg:mx-0"
+            >
+              Trading involves risk. The ATC bot automates execution — it does not guarantee
+              profits or future results.
             </motion.p>
 
             <motion.div

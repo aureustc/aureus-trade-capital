@@ -1,0 +1,157 @@
+/**
+ * Clerk sign-in / sign-up overrides.
+ * Tailwind classes in Clerk appearance.elements are often ignored;
+ * these rules target Clerk's cl-* classes directly.
+ */
+.clerk-auth-page {
+  --clerk-gold: #dbb94a;
+  --clerk-gold-hover: #e8cc6e;
+  --clerk-bg: #0f1218;
+  --clerk-card: #1c222d;
+  --clerk-input: #161b24;
+  --clerk-text: #f5f3ef;
+  --clerk-muted: #c4bfb8;
+  --clerk-border: rgba(219, 185, 74, 0.28);
+}
+
+.clerk-auth-page .cl-card,
+.clerk-auth-page .cl-cardBox {
+  background-color: var(--clerk-card) !important;
+  border: 1px solid var(--clerk-border) !important;
+  box-shadow: 0 0 48px rgba(219, 185, 74, 0.12) !important;
+  border-radius: 1rem !important;
+}
+
+.clerk-auth-page .cl-headerTitle,
+.clerk-auth-page .cl-headerSubtitle,
+.clerk-auth-page .cl-headerTitleText,
+.clerk-auth-page .cl-headerSubtitleText {
+  color: var(--clerk-text) !important;
+}
+
+.clerk-auth-page .cl-headerSubtitle,
+.clerk-auth-page .cl-headerSubtitleText {
+  color: var(--clerk-muted) !important;
+}
+
+.clerk-auth-page .cl-socialButtonsBlockButton,
+.clerk-auth-page .cl-alternativeMethodsBlockButton {
+  background-color: var(--clerk-input) !important;
+  border: 1px solid var(--clerk-border) !important;
+  color: var(--clerk-text) !important;
+}
+
+.clerk-auth-page .cl-socialButtonsBlockButton:hover,
+.clerk-auth-page .cl-alternativeMethodsBlockButton:hover {
+  background-color: #242b38 !important;
+  border-color: rgba(219, 185, 74, 0.45) !important;
+}
+
+.clerk-auth-page .cl-socialButtonsBlockButtonText,
+.clerk-auth-page .cl-alternativeMethodsBlockButtonText {
+  color: var(--clerk-text) !important;
+  font-weight: 500 !important;
+}
+
+.clerk-auth-page .cl-dividerLine {
+  background-color: rgba(219, 185, 74, 0.15) !important;
+}
+
+.clerk-auth-page .cl-dividerText {
+  color: var(--clerk-muted) !important;
+}
+
+.clerk-auth-page .cl-formFieldLabel,
+.clerk-auth-page .cl-formFieldLabelRow label {
+  color: var(--clerk-muted) !important;
+}
+
+.clerk-auth-page .cl-formFieldInput,
+.clerk-auth-page .cl-input {
+  background-color: var(--clerk-input) !important;
+  border: 1px solid var(--clerk-border) !important;
+  color: var(--clerk-text) !important;
+  border-radius: 0.75rem !important;
+}
+
+.clerk-auth-page .cl-formFieldInput::placeholder,
+.clerk-auth-page .cl-input::placeholder {
+  color: #78716c !important;
+}
+
+.clerk-auth-page .cl-formFieldInput:focus,
+.clerk-auth-page .cl-input:focus {
+  border-color: var(--clerk-gold) !important;
+  box-shadow: 0 0 0 1px rgba(219, 185, 74, 0.35) !important;
+}
+
+.clerk-auth-page .cl-formButtonPrimary {
+  background: linear-gradient(135deg, #e8cc6e 0%, #dbb94a 50%, #c9a227 100%) !important;
+  color: #0f1218 !important;
+  font-weight: 600 !important;
+  border: none !important;
+  border-radius: 0.75rem !important;
+  box-shadow: 0 0 20px rgba(219, 185, 74, 0.25) !important;
+}
+
+.clerk-auth-page .cl-formButtonPrimary:hover {
+  background: linear-gradient(135deg, #f0d878 0%, #e8cc6e 50%, #dbb94a 100%) !important;
+  box-shadow: 0 0 28px rgba(219, 185, 74, 0.4) !important;
+}
+
+.clerk-auth-page .cl-footerActionText,
+.clerk-auth-page .cl-footerActionText__signIn,
+.clerk-auth-page .cl-footerActionText__signUp {
+  color: var(--clerk-muted) !important;
+}
+
+.clerk-auth-page .cl-footerActionLink,
+.clerk-auth-page .cl-footerActionLink__signIn,
+.clerk-auth-page .cl-footerActionLink__signUp {
+  color: var(--clerk-gold) !important;
+  font-weight: 600 !important;
+}
+
+.clerk-auth-page .cl-footerActionLink:hover {
+  color: var(--clerk-gold-hover) !important;
+}
+
+.clerk-auth-page .cl-identityPreviewText {
+  color: var(--clerk-text) !important;
+}
+
+.clerk-auth-page .cl-identityPreviewEditButton,
+.clerk-auth-page .cl-identityPreviewEditButtonIcon {
+  color: var(--clerk-gold) !important;
+}
+
+.clerk-auth-page .cl-formFieldErrorText {
+  color: #f87171 !important;
+}
+
+.clerk-auth-page .cl-alertText {
+  color: var(--clerk-text) !important;
+}
+
+.clerk-auth-page .cl-otpCodeFieldInput {
+  background-color: var(--clerk-input) !important;
+  border: 1px solid var(--clerk-border) !important;
+  color: var(--clerk-text) !important;
+}
+
+.clerk-auth-page .cl-internal-b3fm6y,
+.clerk-auth-page [data-localization-key] {
+  color: inherit;
+}
+
+/* Footer "Secured by Clerk" */
+.clerk-auth-page .cl-internal-1dauvpw,
+.clerk-auth-page .cl-footerPagesLink {
+  color: var(--clerk-muted) !important;
+}
+
+.clerk-auth-page .cl-navbar,
+.clerk-auth-page .cl-navbarMobileMenuButton,
+.clerk-auth-page .cl-logoBox {
+  display: none !important;
+}

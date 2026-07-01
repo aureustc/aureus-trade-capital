@@ -4,21 +4,23 @@ import Link from "next/link";
 import { Camera, Link2, Send, Users } from "lucide-react";
 
 const links = [
-  { label: "Home", href: "#home" },
-  { label: "About", href: "#about" },
-  { label: "Bot Features", href: "#bot-features" },
-  { label: "Pricing", href: "#pricing" },
-  { label: "FAQ", href: "#faq" },
-  { label: "Contact", href: "#contact" },
-  { label: "Privacy Policy", href: "#" },
-  { label: "Terms & Conditions", href: "#" },
+  { label: "Home", href: "/#home" },
+  { label: "About", href: "/#about" },
+  { label: "Bot Features", href: "/#bot-features" },
+  { label: "Pricing", href: "/#pricing" },
+  { label: "FAQ", href: "/#faq" },
+  { label: "Contact", href: "/#contact" },
+  { label: "Privacy Policy", href: "/privacy-policy" },
+  { label: "Terms & Conditions", href: "/terms-and-conditions" },
+  { label: "Risk Disclosure", href: "/risk-disclosure" },
+  { label: "Refund Policy", href: "/refund-policy" },
 ] as const;
 
 const socials = [
-  { label: "LinkedIn", href: "#", icon: Link2 },
-  { label: "Instagram", href: "#", icon: Camera },
-  { label: "Facebook", href: "#", icon: Users },
-  { label: "Telegram", href: "#", icon: Send },
+  { label: "LinkedIn", href: "https://linkedin.com", icon: Link2 },
+  { label: "Instagram", href: "https://instagram.com", icon: Camera },
+  { label: "Facebook", href: "https://facebook.com", icon: Users },
+  { label: "Telegram", href: "https://t.me", icon: Send },
 ] as const;
 
 export function Footer() {
@@ -27,7 +29,7 @@ export function Footer() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-3">
           <div>
-            <Link href="#home" className="flex items-center gap-3">
+            <Link href="/#home" className="flex items-center gap-3">
               <span className="pro-card-icon-ring flex h-10 w-10 items-center justify-center font-heading text-lg font-semibold text-[var(--accent-deep)]">
                 ATC
               </span>
@@ -40,14 +42,16 @@ export function Footer() {
             </p>
             <div className="mt-6 flex gap-3">
               {socials.map(({ label, href, icon: Icon }) => (
-                <Link
+                <a
                   key={label}
                   href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   aria-label={label}
                   className="flex h-10 w-10 items-center justify-center rounded-full border border-[var(--card-border)] text-[var(--text-secondary)] transition hover:border-[var(--accent)]/40 hover:text-[var(--accent-hover)] hover:shadow-[var(--glow)]"
                 >
                   <Icon className="h-4 w-4" />
-                </Link>
+                </a>
               ))}
             </div>
           </div>
@@ -72,9 +76,10 @@ export function Footer() {
         </div>
 
         <p className="mt-10 text-xs leading-relaxed text-[var(--text-secondary)]">
-          Forex trading involves substantial risk. The ATC bot automates execution but
-          does not guarantee profits. Aureus Trade Capital does not manage client funds or
-          act as a broker. Trade responsibly.
+          Aureus Trade Capital is a software product company. We sell automated trading bot
+          software for MetaTrader 5. We are not a broker, investment advisor, or fund manager.
+          Forex trading involves substantial risk of loss. Past demo performance does not
+          represent live trading results. Use our software responsibly.
         </p>
         <p className="mt-4 text-xs text-[var(--text-secondary)]/80">
           © 2026 Aureus Trade Capital. All Rights Reserved.

@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  Clock,
-  Coins,
-  Plug,
-  Shield,
-  Terminal,
-  Zap,
-} from "lucide-react";
+import { Clock, Coins, Plug, Shield, Terminal, Zap } from "lucide-react";
 import { motion } from "framer-motion";
 import { SectionReveal } from "./SectionReveal";
 
@@ -28,8 +21,8 @@ const cards = [
     icon: Coins,
   },
   {
-    title: "Emotion-Free Trading",
-    text: "Pure logic, zero fear or greed",
+    title: "Systematic Execution",
+    text: "Rule-based logic, zero emotional interference",
     icon: Zap,
   },
   {
@@ -44,15 +37,15 @@ const cards = [
   },
 ] as const;
 
-export function WhyChooseUs() {
+export function WhyChooseATC() {
   return (
     <SectionReveal className="section-scroll relative py-20 sm:py-28">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <h2 className="text-center font-heading text-3xl font-semibold text-[var(--text-primary)] sm:text-4xl lg:text-5xl">
-          Why Traders Choose the ATC Bot
+          Why Choose ATC
         </h2>
 
-        <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mx-auto mt-14 grid max-w-4xl gap-4 sm:grid-cols-2">
           {cards.map(({ title, text, icon: Icon }, i) => (
             <motion.div
               key={title}
@@ -60,15 +53,15 @@ export function WhyChooseUs() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-5%" }}
               transition={{ duration: 0.4, delay: i * 0.06 }}
-              className="pro-card group p-6"
+              className="pro-card group p-5"
             >
-              <div className="pro-card-icon-ring flex h-11 w-11 items-center justify-center transition-transform duration-300 group-hover:scale-110">
+              <div className="pro-card-icon-ring flex h-10 w-10 items-center justify-center">
                 <Icon className="h-5 w-5 text-[var(--accent)]" strokeWidth={1.5} />
               </div>
-              <h3 className="mt-5 font-heading text-lg font-semibold text-[var(--text-primary)]">
+              <h3 className="mt-4 font-heading text-lg font-semibold text-[var(--text-primary)]">
                 {title}
               </h3>
-              <p className="mt-2 text-sm leading-relaxed text-[var(--text-secondary)]">
+              <p className="mt-1.5 text-sm leading-relaxed text-[var(--text-secondary)]">
                 {text}
               </p>
             </motion.div>
@@ -78,3 +71,6 @@ export function WhyChooseUs() {
     </SectionReveal>
   );
 }
+
+/** @deprecated Use WhyChooseATC */
+export const WhyChooseUs = WhyChooseATC;

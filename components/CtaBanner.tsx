@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import { SectionReveal } from "./SectionReveal";
 
 const stats = [
-  { value: "10K+", label: "Bot Users" },
+  { value: "Beta", label: "Early Access" },
   { value: "24/7", label: "Automation" },
   { value: "MT5", label: "Only" },
   { value: "98ms", label: "Execution" },

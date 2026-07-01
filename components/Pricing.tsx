@@ -11,7 +11,8 @@ import {
   Loader2,
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
-import { useState } from "react";
+import { useUser } from "@clerk/nextjs";
+import { useRouter } from "next/navigation";
 import { SectionReveal } from "./SectionReveal";
 import {
   PaymentDetailsPanel,
@@ -21,6 +22,8 @@ import { amountByPeriod, PAYMENT_EMAIL, periodLabels } from "@/lib/paymentDetail
 import type { PaymentMethod, Period } from "@/lib/paymentTypes";
 import { isRazorpayPublicReady } from "@/lib/razorpay-config";
 import { openRazorpayCheckout } from "@/lib/razorpay-client";
+import { savePendingPayment } from "@/lib/licenses";
+import { useState } from "react";
 
 const periods: { id: Period; label: string }[] = [
   { id: "three", label: "3 Months" },
@@ -43,7 +46,7 @@ const features = [
   "ATC Bot License for MetaTrader 5",
   "Works with any MT5-supported broker",
   "Multi-currency pairs incl. XAU/USD",
-  "AI automation & risk controls",
+  "AI-assisted automation & risk controls",
   "Setup guide + email support",
   "Free updates during license period",
 ] as const;
@@ -80,6 +83,8 @@ const razorpayReady = isRazorpayPublicReady();
 const razorpayKey = razorpayReady ? process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID : undefined;
 
 export function Pricing() {
+  const router = useRouter();
+  const { user } = useUser();
   const [period, setPeriod] = useState<Period>("three");
   const [selectedPayment, setSelectedPayment] = useState<PaymentMethod | null>(null);
   const [step, setStep] = useState<"plans" | "payment" | "confirm">("plans");
@@ -97,10 +102,6 @@ export function Pricing() {
     setStep("payment");
   }
 
-  function handlePaymentProceed() {
-    if (selectedPayment) setStep("confirm");
-  }
-
   function handleReset() {
     setStep("plans");
     setSelectedPayment(null);
@@ -108,6 +109,17 @@ export function Pricing() {
     setRazorpayPaymentId(null);
     setPaymentVerified(false);
     setPaying(false);
+  }
+
+  function handleConfirmContinue() {
+    if (!selectedPayment) return;
+
+    if (selectedPayment === "razorpay") {
+      void handleRazorpayPay();
+      return;
+    }
+
+    setStep("confirm");
   }
 
   async function handleRazorpayPay() {
@@ -122,10 +134,14 @@ export function Pricing() {
     setPayError(null);
 
     try {
-      const orderRes = await fetch("/api/razorpay/order", {
+      const orderRes = await fetch("/api/create-order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ period }),
+        body: JSON.stringify({
+          amount: amountInr,
+          plan: "ATC Bot License",
+          period,
+        }),
       });
       const orderData = await orderRes.json();
 
@@ -143,27 +159,56 @@ export function Pricing() {
           name: "Aureus Trade Capital",
           description: `ATC Bot · ${periodLabels[period]}`,
           order_id: orderData.orderId,
+          image: "/logo2.png",
           theme: { color: "#c9a227" },
         },
         onSuccess: async (response) => {
-          const verifyRes = await fetch("/api/razorpay/verify", {
+          setPaying(false);
+
+          const verifyRes = await fetch("/api/verify-payment", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(response),
+            body: JSON.stringify({
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+            }),
           });
           const verifyData = await verifyRes.json();
 
           if (!verifyRes.ok || !verifyData.verified) {
             setPayError(verifyData.error ?? "Payment could not be verified.");
-            setPaying(false);
             return;
           }
 
-          setRazorpayPaymentId(verifyData.paymentId);
-          setPaymentVerified(true);
-          setSelectedPayment("razorpay");
-          setPaying(false);
-          setStep("confirm");
+          const payload = {
+            razorpay_order_id: response.razorpay_order_id,
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_signature: response.razorpay_signature,
+            period,
+            amountInr,
+          };
+
+          if (user) {
+            const fulfillRes = await fetch("/api/licenses/fulfill", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                razorpay_order_id: payload.razorpay_order_id,
+                razorpay_payment_id: payload.razorpay_payment_id,
+                razorpay_signature: payload.razorpay_signature,
+                period: payload.period,
+              }),
+            });
+
+            if (fulfillRes.ok) {
+              router.push("/dashboard");
+              return;
+            }
+          }
+
+          savePendingPayment(payload);
+          router.push(`/sign-up?redirect=dashboard&period=${period}`);
         },
         onDismiss: () => setPaying(false),
         onFailure: (message) => {
@@ -405,10 +450,10 @@ export function Pricing() {
                 >
                   ← Back
                 </button>
-                {selectedPayment === "razorpay" && (
+                {selectedPayment && (
                   <button
                     type="button"
-                    onClick={handleRazorpayPay}
+                    onClick={handleConfirmContinue}
                     disabled={paying}
                     className="btn-primary group flex items-center gap-2 rounded-full px-8 py-3.5 text-sm font-semibold disabled:opacity-70"
                   >
@@ -419,20 +464,10 @@ export function Pricing() {
                       </>
                     ) : (
                       <>
-                        Pay {price.display} with Razorpay
+                        Confirm &amp; Continue
                         <ArrowRight className="h-4 w-4" />
                       </>
                     )}
-                  </button>
-                )}
-                {selectedPayment && selectedPayment !== "razorpay" && (
-                  <button
-                    type="button"
-                    onClick={handlePaymentProceed}
-                    className="btn-primary group flex items-center gap-2 rounded-full px-8 py-3.5 text-sm font-semibold"
-                  >
-                    I&apos;ve Paid — Continue
-                    <ArrowRight className="h-4 w-4" />
                   </button>
                 )}
               </div>

@@ -8,7 +8,7 @@ import { SectionReveal } from "./SectionReveal";
 const faqs = [
   {
     q: "What exactly am I buying?",
-    a: "You are purchasing a license for the Aureus Trade Capital AI Forex bot — a software program that installs on your MetaTrader 5 terminal and trades automatically on your existing broker account.",
+    a: "You are purchasing a license for the Aureus Trade Capital AI-assisted Forex bot — a software program that installs on your MetaTrader 5 terminal and trades automatically on your existing broker account.",
   },
   {
     q: "Do I need a specific broker?",
