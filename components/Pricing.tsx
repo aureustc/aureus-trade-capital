@@ -160,6 +160,10 @@ export function Pricing() {
           description: `ATC Bot · ${periodLabels[period]}`,
           order_id: orderData.orderId,
           image: "/logo2.png",
+          prefill: {
+            email: user?.emailAddresses?.[0]?.emailAddress ?? "",
+            name: user?.fullName ?? "",
+          },
           theme: { color: "#c9a227" },
         },
         onSuccess: async (response) => {
@@ -172,43 +176,31 @@ export function Pricing() {
               razorpay_order_id: response.razorpay_order_id,
               razorpay_payment_id: response.razorpay_payment_id,
               razorpay_signature: response.razorpay_signature,
+              plan: "atc_bot",
+              period,
+              amount: amountInr,
             }),
           });
           const verifyData = await verifyRes.json();
 
           if (!verifyRes.ok || !verifyData.verified) {
-            setPayError(verifyData.error ?? "Payment could not be verified.");
+            setPayError(verifyData.error ?? "Payment verification failed. Contact support.");
             return;
           }
 
-          const payload = {
+          if (user) {
+            router.push("/dashboard?payment=success");
+            return;
+          }
+
+          savePendingPayment({
             razorpay_order_id: response.razorpay_order_id,
             razorpay_payment_id: response.razorpay_payment_id,
             razorpay_signature: response.razorpay_signature,
             period,
             amountInr,
-          };
-
-          if (user) {
-            const fulfillRes = await fetch("/api/licenses/fulfill", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                razorpay_order_id: payload.razorpay_order_id,
-                razorpay_payment_id: payload.razorpay_payment_id,
-                razorpay_signature: payload.razorpay_signature,
-                period: payload.period,
-              }),
-            });
-
-            if (fulfillRes.ok) {
-              router.push("/dashboard");
-              return;
-            }
-          }
-
-          savePendingPayment(payload);
-          router.push(`/sign-up?redirect=dashboard&period=${period}`);
+          });
+          router.push("/sign-up?redirect=dashboard&payment=success");
         },
         onDismiss: () => setPaying(false),
         onFailure: (message) => {

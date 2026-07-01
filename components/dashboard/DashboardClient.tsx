@@ -18,6 +18,7 @@ import {
   User,
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { RenewalModal } from "@/components/dashboard/RenewalModal";
 import {
   clearPendingPayment,
@@ -75,6 +76,8 @@ const OUTLINE_BTN =
 export function DashboardClient() {
   const { user, isLoaded } = useUser();
   const { signOut } = useClerk();
+  const searchParams = useSearchParams();
+  const paymentSuccess = searchParams.get("payment") === "success";
 
   const [tab, setTab] = useState<Tab>("overview");
   const [license, setLicense] = useState<LicenseRecord | null>(null);
@@ -120,6 +123,12 @@ export function DashboardClient() {
     if (isLoaded && user) void loadData();
     if (isLoaded && !user) setLoading(false);
   }, [isLoaded, user, loadData]);
+
+  useEffect(() => {
+    if (paymentSuccess && user) {
+      void loadData();
+    }
+  }, [paymentSuccess, user, loadData]);
 
   useEffect(() => {
     async function fulfillPending() {
@@ -251,6 +260,18 @@ export function DashboardClient() {
         </nav>
 
         <main className="flex-1 overflow-y-auto p-6 pb-24 lg:p-8">
+          {paymentSuccess && (
+            <div className="mb-6 flex items-center gap-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3">
+              <span className="text-emerald-400">✓</span>
+              <div>
+                <p className="text-sm font-semibold text-emerald-400">Payment Successful!</p>
+                <p className="text-xs text-[var(--text-secondary)]">
+                  Your license is now active. Check the My License tab for your license key.
+                </p>
+              </div>
+            </div>
+          )}
+
           {tab === "overview" && (
             <div>
               <h1 className="font-heading text-2xl font-semibold text-[var(--text-primary)]">
