@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Camera, Link2, Send, Users } from "lucide-react";
+import { Camera, Link2, Phone, Send, Users } from "lucide-react";
 
 const links = [
   { label: "Home", href: "/#home" },
@@ -16,11 +16,21 @@ const links = [
   { label: "Refund Policy", href: "/refund-policy" },
 ] as const;
 
+const phones = ["9011169852", "9011169057"] as const;
+
 const socials = [
   { label: "LinkedIn", href: "https://linkedin.com", icon: Link2 },
-  { label: "Instagram", href: "https://instagram.com", icon: Camera },
+  {
+    label: "Instagram",
+    href: "https://instagram.com/aureustradecapital",
+    icon: Camera,
+  },
   { label: "Facebook", href: "https://facebook.com", icon: Users },
-  { label: "Telegram", href: "https://t.me", icon: Send },
+  {
+    label: "Telegram",
+    href: "https://t.me/aureustradecapital",
+    icon: Send,
+  },
 ] as const;
 
 export function Footer() {
@@ -56,7 +66,7 @@ export function Footer() {
             </div>
           </div>
 
-          <div className="md:col-span-1 lg:col-span-2">
+          <div>
             <h3 className="text-sm font-semibold uppercase tracking-wide text-[var(--text-secondary)]">
               Links
             </h3>
@@ -71,6 +81,56 @@ export function Footer() {
                   </Link>
                 </li>
               ))}
+            </ul>
+          </div>
+
+          <div>
+            <h3 className="text-sm font-semibold uppercase tracking-wide text-[var(--text-secondary)]">
+              Contact
+            </h3>
+            <ul className="mt-4 space-y-3 text-sm text-[var(--text-secondary)]">
+              <li className="flex items-start gap-2">
+                <Phone className="mt-0.5 h-4 w-4 shrink-0 text-[var(--accent)]" />
+                <div className="space-y-1">
+                  {phones.map((phone) => (
+                    <a
+                      key={phone}
+                      href={`tel:+91${phone}`}
+                      className="block font-medium text-[var(--text-primary)] transition hover:text-[var(--accent-hover)]"
+                    >
+                      {phone}
+                    </a>
+                  ))}
+                </div>
+              </li>
+              <li className="flex items-start gap-2">
+                <Camera className="mt-0.5 h-4 w-4 shrink-0 text-[var(--accent)]" />
+                <div>
+                  <span className="text-xs text-[var(--text-secondary)]">Instagram</span>
+                  <a
+                    href="https://instagram.com/aureustradecapital"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-0.5 block font-medium text-[var(--text-primary)] transition hover:text-[var(--accent-hover)]"
+                  >
+                    @aureustradecapital
+                  </a>
+                </div>
+              </li>
+              <li className="flex items-start gap-2">
+                <Send className="mt-0.5 h-4 w-4 shrink-0 text-[var(--accent)]" />
+                <div>
+                  <span className="text-xs text-[var(--text-secondary)]">Telegram</span>
+                  <a
+                    href="https://t.me/aureustradecapital"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-0.5 block font-medium text-[var(--text-primary)] transition hover:text-[var(--accent-hover)]"
+                  >
+                    t.me/aureustradecapital
+                  </a>
+                </div>
+              </li>
             </ul>
           </div>
         </div>
