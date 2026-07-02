@@ -104,16 +104,13 @@ export function PaymentDetailsPanel({
             Pay {amountDisplay} · {periodLabel}
           </p>
 
-          {method === "razorpay" && (
+          {method === "card" && (
             <div className="mt-5">
               <div className="flex items-center gap-2">
                 <Zap className="h-5 w-5 text-[var(--accent-deep)]" />
                 <h4 className="font-heading text-base font-semibold text-[var(--text-primary)]">
-                  Pay online with Razorpay
+                  Pay with Credit / Debit Card
                 </h4>
-                <span className="rounded-full bg-[var(--accent-soft-md)] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[var(--accent-deep)]">
-                  Recommended
-                </span>
               </div>
               <p className="mt-2 text-xs text-[var(--text-secondary)]">
                 Instant, secure checkout — no manual screenshot needed. Settlement to our bank in
@@ -205,9 +202,9 @@ export function PaymentDetailsPanel({
             </div>
           )}
 
-          {method !== "razorpay" && <PaymentScreenshotNotice />}
+          {method !== "card" && <PaymentScreenshotNotice />}
 
-          {method !== "razorpay" && (
+          {method !== "card" && (
             <p className="flex items-center justify-center gap-2 text-center text-[10px] text-[var(--text-secondary)]">
               <Mail className="h-3.5 w-3.5 shrink-0" />
               Subject line example: ATC Bot Payment — {periodLabel} — [Your Name]
@@ -215,10 +212,10 @@ export function PaymentDetailsPanel({
           )}
         </div>
 
-        {method === "razorpay" && (
+        {method === "card" && (
           <p className="text-center text-[10px] text-[var(--text-secondary)]">
-            Click <strong className="text-[var(--text-primary)]">Pay with Razorpay</strong> below
-            to open the secure checkout window.
+            Click <strong className="text-[var(--text-primary)]">Confirm &amp; Continue</strong> below
+            to open the secure card checkout.
           </p>
         )}
       </motion.div>

@@ -2,14 +2,15 @@
 
 import {
   Check,
+  CreditCard,
   Landmark,
   Smartphone,
   ArrowRight,
   ShieldCheck,
   X,
-  Zap,
   Loader2,
 } from "lucide-react";
+import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
@@ -18,7 +19,7 @@ import {
   PaymentDetailsPanel,
   PaymentScreenshotNotice,
 } from "./PaymentDetailsPanel";
-import { amountByPeriod, PAYMENT_EMAIL, periodLabels } from "@/lib/paymentDetails";
+import { amountByPeriod, PAYMENT_EMAIL, periodLabels, UPI, UPI_QR_IMAGE } from "@/lib/paymentDetails";
 import type { PaymentMethod, Period } from "@/lib/paymentTypes";
 import { isRazorpayPublicReady } from "@/lib/razorpay-config";
 import { openRazorpayCheckout } from "@/lib/razorpay-client";
@@ -51,31 +52,23 @@ const features = [
   "Free updates during license period",
 ] as const;
 
-const paymentMethods: {
+const activePaymentMethods: {
   id: PaymentMethod;
   label: string;
-  icon: typeof Zap;
+  icon: typeof Smartphone;
   description: string;
-  badge?: string;
 }[] = [
   {
-    id: "razorpay",
-    label: "Pay Online",
-    icon: Zap,
-    description: "Card, UPI, net banking, wallets",
-    badge: "Recommended",
-  },
-  {
     id: "upi",
-    label: "Manual UPI",
+    label: "UPI",
     icon: Smartphone,
     description: "QR code & UPI ID",
   },
   {
-    id: "bank",
-    label: "Bank Transfer",
-    icon: Landmark,
-    description: "NEFT / RTGS / IMPS",
+    id: "card",
+    label: "Credit / Debit Card",
+    icon: CreditCard,
+    description: "Visa, Mastercard, RuPay",
   },
 ];
 
@@ -92,10 +85,11 @@ export function Pricing() {
   const [payError, setPayError] = useState<string | null>(null);
   const [razorpayPaymentId, setRazorpayPaymentId] = useState<string | null>(null);
   const [paymentVerified, setPaymentVerified] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const price = prices[period];
   const amountInr = amountByPeriod[period];
-  const chosenPayment = paymentMethods.find((p) => p.id === selectedPayment);
+  const chosenPayment = activePaymentMethods.find((p) => p.id === selectedPayment);
 
   function handleProceed() {
     setPayError(null);
@@ -109,12 +103,13 @@ export function Pricing() {
     setRazorpayPaymentId(null);
     setPaymentVerified(false);
     setPaying(false);
+    setCopied(false);
   }
 
   function handleConfirmContinue() {
     if (!selectedPayment) return;
 
-    if (selectedPayment === "razorpay") {
+    if (selectedPayment === "card") {
       void handleRazorpayPay();
       return;
     }
@@ -122,10 +117,20 @@ export function Pricing() {
     setStep("confirm");
   }
 
+  async function copyUpiId() {
+    try {
+      await navigator.clipboard.writeText(UPI.id);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      /* ignore */
+    }
+  }
+
   async function handleRazorpayPay() {
     if (!razorpayReady || !razorpayKey) {
       setPayError(
-        "Razorpay is not active yet. Use Manual UPI or Bank Transfer below — you can enable Razorpay anytime by adding API keys to .env.local.",
+        "Card payments are not available yet. Please pay via UPI or try again later.",
       );
       return;
     }
@@ -231,7 +236,7 @@ export function Pricing() {
             Get the ATC Bot
           </h2>
           <p className="mt-4 text-base text-[var(--text-secondary)] sm:text-lg">
-            One license. MT5 only. Pay instantly with Razorpay or use manual UPI / bank transfer.
+            One license. MT5 only. Pay via UPI or credit / debit card.
           </p>
         </div>
 
@@ -331,8 +336,7 @@ export function Pricing() {
               </div>
 
               <p className="mx-auto mt-6 max-w-md text-center text-xs text-[var(--text-secondary)]">
-                Razorpay checkout for cards, UPI &amp; wallets · Manual options need a payment
-                screenshot by email.
+                UPI payments are verified within 30 minutes · Card checkout is instant
               </p>
             </motion.div>
           )}
@@ -367,27 +371,29 @@ export function Pricing() {
                   Choose your payment method
                 </p>
                 <div className="mt-4 grid gap-4 sm:grid-cols-3">
-                  {paymentMethods.map((method) => {
+                  {activePaymentMethods.map((method) => {
                     const isChosen = selectedPayment === method.id;
+                    const isCardDisabled = method.id === "card" && !razorpayReady;
                     return (
                       <motion.button
                         key={method.id}
                         type="button"
-                        whileHover={{ y: -3 }}
+                        whileHover={isCardDisabled ? undefined : { y: -3 }}
                         onClick={() => {
+                          if (isCardDisabled) return;
                           setSelectedPayment(method.id);
                           setPayError(null);
                         }}
-                        disabled={method.id === "razorpay" && !razorpayReady}
+                        disabled={isCardDisabled}
                         className={`relative flex flex-col items-center gap-3 rounded-2xl border p-6 transition-all disabled:cursor-not-allowed disabled:opacity-60 ${
                           isChosen
                             ? "border-[var(--accent)] bg-[var(--accent-soft-md)] ring-1 ring-[var(--accent)]"
                             : "border-[var(--card-border)] bg-[var(--bg-card)]"
                         }`}
                       >
-                        {method.badge && !isChosen && (
-                          <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-[var(--accent)] px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-[var(--on-accent)]">
-                            {method.id === "razorpay" && !razorpayReady ? "Setup later" : method.badge}
+                        {isCardDisabled && (
+                          <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full border border-[var(--card-border)] bg-[var(--bg-secondary)] px-3 py-0.5 text-[9px] font-bold uppercase tracking-widest text-[var(--text-secondary)]">
+                            Coming Soon
                           </span>
                         )}
                         {isChosen && (
@@ -415,12 +421,91 @@ export function Pricing() {
                       </motion.button>
                     );
                   })}
+
+                  <div
+                    aria-disabled
+                    className="relative flex cursor-not-allowed select-none flex-col items-center gap-3 rounded-2xl border border-[var(--card-border)] bg-[var(--bg-card)] p-6 opacity-50"
+                  >
+                    <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 rounded-full border border-[var(--card-border)] bg-[var(--bg-secondary)] px-3 py-0.5 text-[9px] font-bold uppercase tracking-widest text-[var(--text-secondary)]">
+                      Coming Soon
+                    </span>
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[var(--accent-soft)]">
+                      <Landmark className="h-6 w-6 text-[var(--text-secondary)]" />
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm font-semibold text-[var(--text-secondary)]">
+                        Bank Transfer
+                      </p>
+                      <p className="mt-0.5 text-xs text-[var(--text-secondary)]">
+                        NEFT / RTGS / IMPS
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              {selectedPayment && (
+              {selectedPayment === "upi" && (
+                <div className="mx-auto mt-6 max-w-sm rounded-2xl border border-[var(--card-border)] bg-[var(--bg-card)] p-6 text-center">
+                  <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)]">
+                    Scan to Pay
+                  </p>
+                  <div className="mx-auto mb-4 w-48 overflow-hidden rounded-xl border border-[var(--card-border)] bg-white p-2">
+                    <Image
+                      src={UPI_QR_IMAGE}
+                      alt="UPI QR Code"
+                      width={192}
+                      height={192}
+                      className="h-full w-full object-contain"
+                    />
+                  </div>
+
+                  <div className="space-y-2 rounded-xl border border-[var(--card-border)] bg-[var(--bg-secondary)] p-4 text-left">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-xs text-[var(--text-secondary)]">Pay to</span>
+                      <span className="text-right text-xs font-semibold text-[var(--text-primary)]">
+                        {UPI.name}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="shrink-0 text-xs text-[var(--text-secondary)]">UPI ID</span>
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono text-xs font-semibold text-[var(--accent-hover)]">
+                          {UPI.id}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={copyUpiId}
+                          className="rounded-md border border-[var(--card-border)] bg-[var(--bg-card)] px-2 py-0.5 text-[10px] text-[var(--accent)] transition hover:bg-[var(--bg-card-hover)]"
+                        >
+                          {copied ? "Copied!" : "Copy"}
+                        </button>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-[var(--text-secondary)]">Amount</span>
+                      <span className="text-xs font-bold text-[var(--accent)]">
+                        ₹{amountInr.toLocaleString("en-IN")}
+                      </span>
+                    </div>
+                  </div>
+
+                  <p className="mt-3 text-xs text-[var(--text-secondary)]">
+                    After payment, click &quot;I&apos;ve Paid&quot; below and send your payment
+                    screenshot to{" "}
+                    <a
+                      href={`mailto:${PAYMENT_EMAIL}`}
+                      className="text-[var(--accent-hover)] hover:underline"
+                    >
+                      {PAYMENT_EMAIL}
+                    </a>{" "}
+                    with your registered email. Your license will be activated within 30 minutes.
+                  </p>
+                </div>
+              )}
+
+              {selectedPayment === "card" && (
                 <PaymentDetailsPanel
-                  method={selectedPayment}
+                  method="card"
                   amountInr={amountInr}
                   amountDisplay={price.display}
                   periodLabel={periodLabels[period]}
@@ -443,24 +528,35 @@ export function Pricing() {
                   ← Back
                 </button>
                 {selectedPayment && (
-                  <button
-                    type="button"
-                    onClick={handleConfirmContinue}
-                    disabled={paying}
-                    className="btn-primary group flex items-center gap-2 rounded-full px-8 py-3.5 text-sm font-semibold disabled:opacity-70"
-                  >
-                    {paying ? (
-                      <>
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        Opening checkout…
-                      </>
-                    ) : (
-                      <>
-                        Confirm &amp; Continue
-                        <ArrowRight className="h-4 w-4" />
-                      </>
-                    )}
-                  </button>
+                  selectedPayment === "upi" ? (
+                    <button
+                      type="button"
+                      onClick={() => setStep("confirm")}
+                      className="btn-primary group flex items-center gap-3 rounded-full px-8 py-3.5 text-sm font-bold shadow-[var(--glow-strong)] transition-all hover:scale-105"
+                    >
+                      I&apos;ve Paid — Confirm Order
+                      <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={handleConfirmContinue}
+                      disabled={paying}
+                      className="btn-primary group flex items-center gap-2 rounded-full px-8 py-3.5 text-sm font-semibold disabled:opacity-70"
+                    >
+                      {paying ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Opening checkout…
+                        </>
+                      ) : (
+                        <>
+                          Confirm &amp; Continue
+                          <ArrowRight className="h-4 w-4" />
+                        </>
+                      )}
+                    </button>
+                  )
                 )}
               </div>
             </motion.div>
@@ -478,18 +574,27 @@ export function Pricing() {
                   <ShieldCheck className="h-8 w-8 text-[var(--on-accent)]" />
                 </div>
                 <h3 className="mt-5 font-heading text-2xl font-semibold text-[var(--text-primary)]">
-                  {paymentVerified ? "Payment successful!" : "Almost there!"}
+                  {paymentVerified ? "Payment successful!" : selectedPayment === "upi" ? "Order noted!" : "Almost there!"}
                 </h3>
                 <p className="mt-2 text-sm text-[var(--text-secondary)]">
                   {paymentVerified
-                    ? "Your Razorpay payment is confirmed. We will email your MT5 license shortly."
-                    : "Complete the last step so we can activate your license."}
+                    ? "Your card payment is confirmed. We will email your MT5 license shortly."
+                    : selectedPayment === "upi"
+                      ? "Your order has been noted. Please send your payment screenshot to aureustradecapital@gmail.com with your registered email address."
+                      : "Complete the last step so we can activate your license."}
                 </p>
 
-                {!paymentVerified && (
+                {!paymentVerified && selectedPayment !== "upi" && (
                   <div className="mt-6 text-left">
                     <PaymentScreenshotNotice compact />
                   </div>
+                )}
+
+                {selectedPayment === "upi" && !paymentVerified && (
+                  <p className="mt-4 text-xs leading-relaxed text-[var(--text-secondary)]">
+                    Your license key will be activated and emailed to you within 30 minutes of
+                    payment confirmation.
+                  </p>
                 )}
 
                 <div className="mt-6 space-y-3 rounded-xl border border-[var(--card-border)] bg-[var(--bg-secondary)] p-5 text-left text-sm">
@@ -500,17 +605,23 @@ export function Pricing() {
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-[var(--text-secondary)]">Platform</span>
-                    <span className="font-semibold text-[var(--text-primary)]">MT5 only</span>
+                    <span className="text-[var(--text-secondary)]">Duration</span>
+                    <span className="font-semibold text-[var(--text-primary)]">
+                      {periodLabels[period]}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-[var(--text-secondary)]">Amount</span>
-                    <span className="font-bold text-[var(--accent)]">{price.display}</span>
+                    <span className="font-bold text-[var(--accent)]">
+                      ₹{amountInr.toLocaleString("en-IN")}
+                    </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-[var(--text-secondary)]">Payment</span>
+                    <span className="text-[var(--text-secondary)]">Payment via</span>
                     <span className="font-semibold text-[var(--text-primary)]">
-                      {chosenPayment?.label}
+                      {selectedPayment === "upi"
+                        ? `UPI (${UPI.id})`
+                        : chosenPayment?.label ?? "—"}
                     </span>
                   </div>
                   {razorpayPaymentId && (
@@ -533,6 +644,17 @@ export function Pricing() {
                       >
                         {PAYMENT_EMAIL}
                       </a>
+                    </>
+                  ) : selectedPayment === "upi" ? (
+                    <>
+                      Email your screenshot to{" "}
+                      <a
+                        href={`mailto:${PAYMENT_EMAIL}?subject=ATC%20Bot%20Payment%20-%20${encodeURIComponent(periodLabels[period])}`}
+                        className="font-medium text-[var(--accent-deep)] hover:underline"
+                      >
+                        {PAYMENT_EMAIL}
+                      </a>{" "}
+                      and include the email you used to register on this site.
                     </>
                   ) : (
                     <>
@@ -563,7 +685,7 @@ export function Pricing() {
 
         <div className="mt-12 flex items-center justify-center gap-2 text-xs text-[var(--text-secondary)]">
           <ShieldCheck className="h-4 w-4 text-[var(--accent)]" />
-          Razorpay secure checkout · MT5 bot only · We never hold your trading funds
+          Secure UPI &amp; card checkout · MT5 bot only · We never hold your trading funds
         </div>
       </div>
     </SectionReveal>

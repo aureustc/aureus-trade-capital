@@ -3,9 +3,11 @@
 export const PAYMENT_EMAIL = "aureustradecapital@gmail.com";
 
 export const UPI = {
-  id: "aureustradecapital@oksbi",
-  name: "Aureus Trade Capital",
+  id: "9175861071@ybl",
+  name: "Radhey Sai Construction and Transport",
 } as const;
+
+export const UPI_QR_IMAGE = "/qr-code.jpeg";
 
 export const BANK = {
   accountName: "Aureus Trade Capital",
