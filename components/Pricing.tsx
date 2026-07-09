@@ -466,21 +466,6 @@ export function Pricing() {
                         {UPI.name}
                       </span>
                     </div>
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="shrink-0 text-xs text-[var(--text-secondary)]">UPI ID</span>
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono text-xs font-semibold text-[var(--accent-hover)]">
-                          {UPI.id}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={copyUpiId}
-                          className="rounded-md border border-[var(--card-border)] bg-[var(--bg-card)] px-2 py-0.5 text-[10px] text-[var(--accent)] transition hover:bg-[var(--bg-card-hover)]"
-                        >
-                          {copied ? "Copied!" : "Copy"}
-                        </button>
-                      </div>
-                    </div>
                     <div className="flex items-center justify-between">
                       <span className="text-xs text-[var(--text-secondary)]">Amount</span>
                       <span className="text-xs font-bold text-[var(--accent)]">
@@ -620,7 +605,7 @@ export function Pricing() {
                     <span className="text-[var(--text-secondary)]">Payment via</span>
                     <span className="font-semibold text-[var(--text-primary)]">
                       {selectedPayment === "upi"
-                        ? `UPI (${UPI.id})`
+                        ? "UPI"
                         : chosenPayment?.label ?? "—"}
                     </span>
                   </div>
